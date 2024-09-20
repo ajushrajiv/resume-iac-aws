@@ -1,0 +1,47 @@
+name: s3 workflow
+
+on: workflow_dispatch
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout GitHub Actions'
+        uses: actions/checkout@v4
+
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.3
+
+      - name: 'Configure AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: eu-central-1
+
+      - name: 'Terraform Init'
+        run: terraform init
+        working-directory: ./s3
+
+      - name: 'Terraform Format'
+        run: terraform fmt --check
+        working-directory: ./s3
+
+      - name: 'Terraform Validate'
+        run: terraform validate
+        working-directory: ./s3
+
+      - name: 'Terraform Plan'
+        run: terraform plan
+        working-directory: ./s3
+
+      - name: 'Terraform Apply'
+        env:
+            GIT_SHA: ${{ github.sha }}
+        run: terraform apply -auto-approve
+        working-directory: ./s3
