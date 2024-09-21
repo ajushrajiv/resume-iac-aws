@@ -2,6 +2,10 @@ name: vpc workflow
 
 on: workflow_dispatch
 
+permissions:
+  actions: read    
+  contents: read
+
 jobs:
   vpc:
     name: 'Terraform VPC'
