@@ -1,5 +1,5 @@
 data "terraform_remote_state" "vpc" {
-  backend = "s3"  
+  backend = "s3"
   config = {
     bucket = "matchmyresume-backend-state-demo--0788da0f74"
     key    = "vpc/terraform.tfstate"
@@ -8,7 +8,7 @@ data "terraform_remote_state" "vpc" {
 }
 
 resource "aws_db_subnet_group" "aurora_subnet_group" {
-  name       = "aurora-subnet-group"
+  name = "aurora-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1b,
@@ -25,26 +25,26 @@ resource "aws_security_group" "aurora_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]  
+    cidr_blocks = ["10.0.0.0/16"]
   }
 }
 
 resource "aws_rds_cluster_instance" "aurora_instance" {
-  count              = 2
-  identifier         = "aurora-instance-1-${count.index}"
-  cluster_identifier = aws_rds_cluster.aurora_cluster.id
-  instance_class     = "db.t2"
-  engine             = aws_rds_cluster.aurora_cluster.engine
-  engine_version     = aws_rds_cluster.aurora_cluster.engine_version
+  count               = 2
+  identifier          = "aurora-instance-1-${count.index}"
+  cluster_identifier  = aws_rds_cluster.aurora_cluster.id
+  instance_class      = "db.t2"
+  engine              = aws_rds_cluster.aurora_cluster.engine
+  engine_version      = aws_rds_cluster.aurora_cluster.engine_version
   publicly_accessible = false
 }
 
 resource "aws_rds_cluster" "aurora_cluster" {
-  engine                = "aurora-mysql"
-  cluster_identifier    = "my-aurora-cluster"
-  database_name         = "matchmyresume-aurora-mysql"
-  master_username       = var.db_master_username
-  master_password       = var.db_master_password
+  engine                 = "aurora-mysql"
+  cluster_identifier     = "my-aurora-cluster"
+  database_name          = "matchmyresume-aurora-mysql"
+  master_username        = var.db_master_username
+  master_password        = var.db_master_password
   vpc_security_group_ids = [aws_security_group.aurora_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.aurora_subnet_group.name
 }
