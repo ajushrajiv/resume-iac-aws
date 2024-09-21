@@ -14,7 +14,7 @@ jobs:
       - name: 'Download S3 Bucket Artifact'
         uses: actions/download-artifact@v3
         with:
-          name: s3_bucket_name
+          name: s3_bucket_name.txt
 
       - name: 'Read S3 Bucket Name'
         run: echo "s3_bucket=$(cat s3_bucket_name.txt)" >> $GITHUB_ENV
