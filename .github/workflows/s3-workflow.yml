@@ -64,6 +64,10 @@ jobs:
 
       - name: 'List Artifacts'
         run: ls -la
+
+      - name: 'Display S3 Bucket Name'
+        run: cat s3_bucket_name.txt
+
       
 
       
