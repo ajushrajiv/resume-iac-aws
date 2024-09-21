@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Terraform s3'
     runs-on: ubuntu-latest
 
     steps:
@@ -47,3 +47,20 @@ jobs:
             GIT_SHA: ${{ github.sha }}
         run: terraform apply -var="git_sha=${{ github.sha }}" -auto-approve
         working-directory: ./modules/s3
+
+      - name: 'Save S3 Bucket Name'
+        id: s3_bucket_output
+        run: echo "s3_bucket=$(terraform output -raw aws_s3_bucket)" >> $GITHUB_ENV
+        working-directory: ./modules/s3
+
+      - name: 'Write S3 Bucket Name to File'
+        run: echo ${{ env.s3_bucket }} > s3_bucket_name.txt
+    
+      - name: 'Upload S3 Bucket Name as Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: s3-bucket-name
+          path: s3_bucket_name.txt
+      
+
+      

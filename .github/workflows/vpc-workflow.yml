@@ -1,0 +1,48 @@
+name: vpc workflow
+
+on: workflow_dispatch
+
+jobs:
+  terraform:
+    name: 'Terraform VPC'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout GitHub Actions'
+        uses: actions/checkout@v4
+
+      - name: 'Download S3 Bucket Artifact'
+        uses: actions/download-artifact@v3
+        with:
+          name: s3-bucket-name
+
+      - name: 'Read S3 Bucket Name'
+        run: echo "s3_bucket=$(cat s3_bucket_name.txt)" >> $GITHUB_ENV
+
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.3
+
+      - name: 'Configure AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: eu-central-1
+
+      - name: 'Terraform Init for VPC'
+        run: terraform init \
+          -backend-config="bucket=${{ env.s3_bucket }}" \
+          -backend-config="key=${{ env.s3_bucket }}/vpc/terraform.tfstate" \
+          -backend-config="region=eu-central-1"
+        working-directory: ./modules/vpc
+
+      - name: 'Terraform Plan for VPC'
+        run: terraform plan
+        working-directory: ./modules/vpc
+
+      - name: 'Terraform Apply for VPC'
+        run: terraform apply -auto-approve
+        working-directory: ./modules/vpc

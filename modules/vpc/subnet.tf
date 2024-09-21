@@ -7,7 +7,7 @@ locals {
 }
 
 resource "aws_subnet" "public" {
-  count = length(local.azs) 
+  count = length(local.azs)
 
   vpc_id                  = aws_vpc.resume_main_vpc.id
   cidr_block              = local.public_subnets[count.index]
