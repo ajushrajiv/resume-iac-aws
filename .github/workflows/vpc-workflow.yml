@@ -78,7 +78,7 @@ jobs:
       - name: 'Setup Terraform'
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.3
+          terraform_version: 1.9.6d
 
       # Step 6: Configure AWS Credentials
       - name: 'Configure AWS Credentials'
@@ -93,17 +93,17 @@ jobs:
       - name: 'Terraform Init for VPC'
         run: |
           terraform init \
-            -chdir=./modules/vpc \
             -backend-config="bucket=${{ env.s3_bucket }}" \
             -backend-config="key=${{ env.s3_bucket }}/vpc/terraform.tfstate" \
             -backend-config="region=eu-central-1"
-    
+        working-directory: ./modules/vpc
+        
       # Step 8: Terraform Plan for VPC
       - name: 'Terraform Plan for VPC'
-        run: |
-          terraform plan -chdir=./modules/vpc
+        run: terraform plan
+        working-directory: ./modules/vpc
     
       # Step 9: Terraform Apply for VPC
       - name: 'Terraform Apply for VPC'
-        run: |
-          terraform apply -chdir=./modules/vpc -auto-approve
+        run: terraform apply -auto-approve
+        working-directory: ./modules/vpc
