@@ -61,6 +61,9 @@ jobs:
         with:
           name: s3-bucket-name
           path: s3_bucket_name.txt
+
+      - name: 'List Artifacts'
+        run: ls -la
       
 
       
