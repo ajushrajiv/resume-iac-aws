@@ -3,7 +3,7 @@ name: s3 workflow
 on: workflow_dispatch
 
 jobs:
-  terraform:
+  s3:
     name: 'Terraform s3'
     runs-on: ubuntu-latest
 
