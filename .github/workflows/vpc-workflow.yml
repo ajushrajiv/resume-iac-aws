@@ -50,15 +50,13 @@ jobs:
       - name: 'Download Artifact using GitHub API'
         run: |
           echo "Downloading artifact from run ID: ${{ env.run_id }}"
-          
-          # Download artifact from the previous run using GitHub API
           curl -L \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -o artifact.zip \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ env.run_id }}/artifacts"
-
-          # Unzip the artifact (you can use other commands to handle the file as needed)
-          unzip artifact.zip
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.artifact_id }}/zip"
+  
+      - name: 'Unzip Artifact'
+        run: unzip artifact.zip
 
       # Step 4: Check if the S3 Bucket Artifact Downloaded Successfully
       - name: 'Check if S3 Bucket Artifact Downloaded'
