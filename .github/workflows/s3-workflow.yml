@@ -37,11 +37,13 @@ jobs:
         working-directory: ./modules/s3
 
       - name: 'Terraform Plan'
-        run: terraform plan
+        env:
+          GIT_SHA: ${{ github.sha }}
+        run: terraform plan -var="git_sha=${{ github.sha }}"
         working-directory: ./modules/s3
 
       - name: 'Terraform Apply'
         env:
             GIT_SHA: ${{ github.sha }}
-        run: terraform apply -auto-approve
+        run: terraform apply -var="git_sha=${{ github.sha }}" -auto-approve
         working-directory: ./modules/s3
