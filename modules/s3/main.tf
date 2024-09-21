@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "matchmyresume-backend-state-demo--${var.git_sha}"
+  bucket = "matchmyresume-backend-state-demo--${substr(var.git_sha, 0, 10)}"
 
   tags = {
     Name        = "resume-backend-state"
