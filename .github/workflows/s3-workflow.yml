@@ -55,6 +55,9 @@ jobs:
 
       - name: 'Write S3 Bucket Name to File'
         run: echo ${{ env.s3_bucket }} > s3_bucket_name.txt
+
+      - name: 'List Files Before Uploading'
+        run: ls -la
     
       - name: 'Upload S3 Bucket Name as Artifact'
         uses: actions/upload-artifact@v3
