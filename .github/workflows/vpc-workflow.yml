@@ -11,48 +11,59 @@ jobs:
       - name: 'Checkout GitHub Actions'
         uses: actions/checkout@v4
 
+      # Step 1: Get the Previous Run ID of s3-workflow using GitHub API
       - name: 'Get Previous s3-workflow Run ID'
         id: get_run_id
         run: |
+          # GitHub API URL to fetch previous runs of s3-workflow
           response=$(curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/s3-workflow.yml/runs?per_page=1&status=completed")
-          
+
+          # Extracting the run-id from the response using jq
           run_id=$(echo $response | jq -r '.workflow_runs[0].id')
           echo "Previous s3-workflow run ID: $run_id"
-          
+
+          # Save run_id to environment variable
           echo "run_id=$run_id" >> $GITHUB_ENV
 
-      - name: 'Download S3 Bucket Artifact'
-        id: download_artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: s3-bucket-name
-          path: .
-          run-id: ${{ env.run_id }}
+      # Step 2: Use GitHub API to Download Artifact using run_id
+      - name: 'Download Artifact using GitHub API'
+        run: |
+          echo "Downloading artifact from run ID: ${{ env.run_id }}"
+          
+          # Download artifact from the previous run using GitHub API
+          curl -L \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -o artifact.zip \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ env.run_id }}/artifacts"
 
-      - name: 'Check if Artifact Downloaded'
+          # Unzip the artifact (you can use other commands to handle the file as needed)
+          unzip artifact.zip
+
+      # Step 3: Check if the S3 Bucket Artifact Downloaded Successfully
+      - name: 'Check if S3 Bucket Artifact Downloaded'
         run: |
           if [ -f s3_bucket_name.txt ]; then
             echo "Artifact downloaded successfully."
           else
             echo "Artifact download failed or file does not exist."
+            exit 1
           fi
 
+      # Step 4: Read S3 Bucket Name
       - name: 'Read S3 Bucket Name'
         run: |
-          if [ -f s3_bucket_name.txt ]; then
-            echo "s3_bucket=$(cat s3_bucket_name.txt)" >> $GITHUB_ENV
-          else
-            echo "No bucket name found. Exiting."
-            exit 1  # Exit if the file doesn't exist
-          fi
-          
+          s3_bucket=$(cat s3_bucket_name.txt)
+          echo "s3_bucket=$s3_bucket" >> $GITHUB_ENV
+
+      # Step 5: Setup Terraform
       - name: 'Setup Terraform'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.9.3
 
+      # Step 6: Configure AWS Credentials
       - name: 'Configure AWS Credentials'
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -61,6 +72,7 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
 
+      # Step 7: Initialize Terraform with S3 Backend
       - name: 'Terraform Init for VPC'
         run: terraform init \
           -backend-config="bucket=${{ env.s3_bucket }}" \
@@ -68,10 +80,12 @@ jobs:
           -backend-config="region=eu-central-1"
         working-directory: ./modules/vpc
 
+      # Step 8: Terraform Plan for VPC
       - name: 'Terraform Plan for VPC'
         run: terraform plan
         working-directory: ./modules/vpc
 
+      # Step 9: Terraform Apply for VPC
       - name: 'Terraform Apply for VPC'
         run: terraform apply -auto-approve
         working-directory: ./modules/vpc
