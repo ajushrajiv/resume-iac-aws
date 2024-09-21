@@ -89,20 +89,21 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
 
-      # Step 7: Initialize Terraform with S3 Backend
+       # Step 7: Initialize Terraform with S3 Backend
       - name: 'Terraform Init for VPC'
-        run: terraform init \
-          -backend-config="bucket=${{ env.s3_bucket }}" \
-          -backend-config="key=${{ env.s3_bucket }}/vpc/terraform.tfstate" \
-          -backend-config="region=eu-central-1"
-        working-directory: ./modules/vpc
-
+        run: |
+          terraform init \
+            -chdir=./modules/vpc \
+            -backend-config="bucket=${{ env.s3_bucket }}" \
+            -backend-config="key=${{ env.s3_bucket }}/vpc/terraform.tfstate" \
+            -backend-config="region=eu-central-1"
+    
       # Step 8: Terraform Plan for VPC
       - name: 'Terraform Plan for VPC'
-        run: terraform plan
-        working-directory: ./modules/vpc
-
+        run: |
+          terraform plan -chdir=./modules/vpc
+    
       # Step 9: Terraform Apply for VPC
       - name: 'Terraform Apply for VPC'
-        run: terraform apply -auto-approve
-        working-directory: ./modules/vpc
+        run: |
+          terraform apply -chdir=./modules/vpc -auto-approve
