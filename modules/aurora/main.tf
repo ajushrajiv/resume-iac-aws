@@ -2,7 +2,7 @@ data "terraform_remote_state" "vpc" {
   backend = "s3"
   config = {
     bucket = "matchmyresume-backend-state-demo--0788da0f74"
-    key    = "vpc/terraform.tfstate"
+    key    = "matchmyresume-backend-state-demo--0788da0f74/vpc/terraform.tfstate"
     region = "eu-central-1"
   }
 }
