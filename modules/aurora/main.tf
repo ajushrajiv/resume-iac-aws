@@ -7,7 +7,7 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-resource "aws_db_subnet_group" "aurora_subnet_group" {
+resource "aws_db_subnet_group" "resume_subnet_group" {
   name = "aurora-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1a,
@@ -16,7 +16,7 @@ resource "aws_db_subnet_group" "aurora_subnet_group" {
   ]
 }
 
-resource "aws_security_group" "aurora_sg" {
+resource "aws_security_group" "resume_sg" {
   name        = "aurora-sg"
   description = "Allow access to Aurora"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -29,22 +29,22 @@ resource "aws_security_group" "aurora_sg" {
   }
 }
 
-resource "aws_rds_cluster_instance" "aurora_instance" {
+resource "aws_rds_cluster_instance" "resume_aurora_instance" {
   count               = 2
   identifier          = "aurora-instance-1-${count.index}"
-  cluster_identifier  = aws_rds_cluster.aurora_cluster.id
+  cluster_identifier  = aws_rds_cluster.resume_aurora_cluster.id
   instance_class      = "db.t2"
-  engine              = aws_rds_cluster.aurora_cluster.engine
-  engine_version      = aws_rds_cluster.aurora_cluster.engine_version
+  engine              = aws_rds_cluster.resume_aurora_cluster.engine
+  engine_version      = aws_rds_cluster.resume_aurora_cluster.engine_version
   publicly_accessible = false
 }
 
-resource "aws_rds_cluster" "aurora_cluster" {
+resource "aws_rds_cluster" "resume_aurora_cluster" {
   engine                 = "aurora-mysql"
   cluster_identifier     = "my-aurora-cluster"
   database_name          = "matchmyresumedb"
   master_username        = var.db_master_username
   master_password        = var.db_master_password
-  vpc_security_group_ids = [aws_security_group.aurora_sg.id]
-  db_subnet_group_name   = aws_db_subnet_group.aurora_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.resume_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.resume_subnet_group.name
 }
