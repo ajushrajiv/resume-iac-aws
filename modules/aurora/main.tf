@@ -42,7 +42,7 @@ resource "aws_rds_cluster_instance" "aurora_instance" {
 resource "aws_rds_cluster" "aurora_cluster" {
   engine                 = "aurora-mysql"
   cluster_identifier     = "my-aurora-cluster"
-  database_name          = "matchmyresume-aurora-mysql"
+  database_name          = "matchmyresumedb"
   master_username        = var.db_master_username
   master_password        = var.db_master_password
   vpc_security_group_ids = [aws_security_group.aurora_sg.id]
