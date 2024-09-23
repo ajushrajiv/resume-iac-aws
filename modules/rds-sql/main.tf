@@ -31,7 +31,7 @@ resource "aws_security_group" "resume_sg" {
 
 resource "aws_db_instance" "resume_db_instance" {
   identifier              = "resume-db-instance"
-  instance_class          = "db.m5.large"
+  instance_class          = "db.t4g.micro"
   engine                  = "mysql"
   engine_version          = "8.0.35"
   allocated_storage       = 20
