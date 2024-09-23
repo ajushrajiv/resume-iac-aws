@@ -1,4 +1,4 @@
-name: Aurora database
+name: RDS sql database
 
 on: workflow_dispatch
 
@@ -7,8 +7,8 @@ permissions:
   contents: read
 
 jobs:
-  aurora:
-    name: 'Terraform aurora'
+  rds-sql:
+    name: 'Terraform rds-sql'
     runs-on: ubuntu-latest
 
     steps:
@@ -87,25 +87,25 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: eu-central-1
 
-      - name: 'Terraform Init for aurora'
+      - name: 'Terraform Init for rds-sql'
         run: |
           terraform init \
             -backend-config="bucket=${{ env.s3_bucket }}" \
-            -backend-config="key=${{ env.s3_bucket }}/aurora/terraform.tfstate" \
+            -backend-config="key=${{ env.s3_bucket }}/rds-sql/terraform.tfstate" \
             -backend-config="region=eu-central-1"
-        working-directory: ./modules/aurora
+        working-directory: ./modules/rds-sql
 
       - name: 'Terraform Format'
         run: terraform fmt --check
-        working-directory: ./modules/aurora
+        working-directory: ./modules/rds-sql
 
       - name: 'Terraform Validate'
         run: terraform validate
-        working-directory: ./modules/aurora
+        working-directory: ./modules/rds-sql
 
       - name: 'Terraform Apply'
         env:
             TF_VAR_db_master_username: ${{ secrets.DB_MASTER_USERNAME }}
             TF_VAR_db_master_password: ${{ secrets.DB_MASTER_PASSWORD }}
         run: terraform apply -auto-approve
-        working-directory: ./modules/aurora
+        working-directory: ./modules/rds-sql

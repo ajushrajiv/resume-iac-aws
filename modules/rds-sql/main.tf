@@ -8,7 +8,7 @@ data "terraform_remote_state" "vpc" {
 }
 
 resource "aws_db_subnet_group" "resume_subnet_group" {
-  name = "aurora-subnet-group"
+  name = "rds-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1b,
@@ -17,8 +17,8 @@ resource "aws_db_subnet_group" "resume_subnet_group" {
 }
 
 resource "aws_security_group" "resume_sg" {
-  name        = "aurora-sg"
-  description = "Allow access to Aurora"
+  name        = "rds-sg"
+  description = "Allow access to RDS"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
 
   ingress {
@@ -29,22 +29,19 @@ resource "aws_security_group" "resume_sg" {
   }
 }
 
-resource "aws_rds_cluster_instance" "resume_aurora_instance" {
-  count               = 2
-  identifier          = "aurora-instance-1-${count.index}"
-  cluster_identifier  = aws_rds_cluster.resume_aurora_cluster.id
-  instance_class      = "db.t2"
-  engine              = aws_rds_cluster.resume_aurora_cluster.engine
-  engine_version      = aws_rds_cluster.resume_aurora_cluster.engine_version
+resource "aws_db_instance" "resume_db_instance" {
+  identifier          = "resume-db-instance"
+  instance_class      = "db.t2.micro" 
+  engine              = "mysql"       
+  engine_version      = "8.0.23"      
+  allocated_storage   = 20            
+  db_name                 = "matchmyresume_app"
+  username            = var.db_master_username
+  password            = var.db_master_password
   publicly_accessible = false
-}
-
-resource "aws_rds_cluster" "resume_aurora_cluster" {
-  engine                 = "aurora-mysql"
-  cluster_identifier     = "my-aurora-cluster"
-  database_name          = "matchmyresumedb"
-  master_username        = var.db_master_username
-  master_password        = var.db_master_password
   vpc_security_group_ids = [aws_security_group.resume_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.resume_subnet_group.name
+  multi_az            = false         
+  backup_retention_period = 7         
+  skip_final_snapshot = true         
 }
