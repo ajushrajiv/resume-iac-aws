@@ -61,26 +61,3 @@ resource "aws_route_table_association" "private_rta" {
   route_table_id = aws_route_table.private_rt.id
 }
 
-resource "aws_nat_gateway" "resume_nat_gw" {
-  allocation_id = aws_eip.resume_nat_eip.id
-  subnet_id     = aws_subnet.public[0].id
-
-  tags = {
-    Name = "resume-nat-gateway"
-  }
-}
-
-resource "aws_eip" "resume_nat_eip" {
-  domain = "vpc"
-  tags = {
-    Name = "resume-nat-eip"
-  }
-}
-
-resource "aws_route" "private_nat_route" {
-  route_table_id         = aws_route_table.private_rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.resume_nat_gw.id
-}
-
-

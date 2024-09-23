@@ -25,7 +25,3 @@ output "private_subnet_id_1b" {
 output "private_subnet_id_1c" {
   value = aws_subnet.private[2].id
 }
-
-output "nat_gateway_id" {
-  value = aws_nat_gateway.resume_nat_gw.id
-}
