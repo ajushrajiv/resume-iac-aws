@@ -7,15 +7,8 @@ data "terraform_remote_state" "vpc" {
   }
 }
 
-# Data source to check for an existing DB subnet group
-data "aws_db_subnet_group" "existing_subnet_group" {
-  name = "rds-subnet-group"
-}
-
-# Create the DB subnet group only if it doesn't exist
 resource "aws_db_subnet_group" "resume_subnet_group" {
-  count = length(data.aws_db_subnet_group.existing_subnet_group.id) == 0 ? 1 : 0
-  name  = "rds-subnet-group"
+  name = "rds-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.private_subnet_id_1b,
@@ -23,17 +16,7 @@ resource "aws_db_subnet_group" "resume_subnet_group" {
   ]
 }
 
-# Data source to check for an existing security group
-data "aws_security_group" "existing_sg" {
-  filter {
-    name   = "group-name"
-    values = ["rds-sg"]
-  }
-}
-
-# Create the security group only if it doesn't exist
 resource "aws_security_group" "resume_sg" {
-  count       = length(data.aws_security_group.existing_sg.id) == 0 ? 1 : 0
   name        = "rds-sg"
   description = "Allow access to RDS"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -46,14 +29,7 @@ resource "aws_security_group" "resume_sg" {
   }
 }
 
-# Data source to check for an existing DB instance
-data "aws_db_instance" "existing_db_instance" {
-  db_instance_identifier = "resume-db-instance"
-}
-
-# Create the RDS instance only if it doesn't exist
 resource "aws_db_instance" "resume_db_instance" {
-  count                   = length(data.aws_db_instance.existing_db_instance.id) == 0 ? 1 : 0
   identifier              = "resume-db-instance"
   instance_class          = "db.t2.micro"
   engine                  = "mysql"
@@ -69,4 +45,3 @@ resource "aws_db_instance" "resume_db_instance" {
   backup_retention_period = 7
   skip_final_snapshot     = true
 }
-
