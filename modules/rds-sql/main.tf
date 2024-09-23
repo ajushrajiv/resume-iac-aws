@@ -33,7 +33,7 @@ resource "aws_db_instance" "resume_db_instance" {
   identifier              = "resume-db-instance"
   instance_class          = "db.t2.micro"
   engine                  = "mysql"
-  engine_version          = "8.0.23"
+  engine_version          = "8.0.35"
   allocated_storage       = 20
   db_name                 = "matchmyresume_app"
   username                = var.db_master_username
