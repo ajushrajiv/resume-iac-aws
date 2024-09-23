@@ -30,18 +30,18 @@ resource "aws_security_group" "resume_sg" {
 }
 
 resource "aws_db_instance" "resume_db_instance" {
-  identifier          = "resume-db-instance"
-  instance_class      = "db.t2.micro" 
-  engine              = "mysql"       
-  engine_version      = "8.0.23"      
-  allocated_storage   = 20            
+  identifier              = "resume-db-instance"
+  instance_class          = "db.t2.micro"
+  engine                  = "mysql"
+  engine_version          = "8.0.23"
+  allocated_storage       = 20
   db_name                 = "matchmyresume_app"
-  username            = var.db_master_username
-  password            = var.db_master_password
-  publicly_accessible = false
-  vpc_security_group_ids = [aws_security_group.resume_sg.id]
-  db_subnet_group_name   = aws_db_subnet_group.resume_subnet_group.name
-  multi_az            = false         
-  backup_retention_period = 7         
-  skip_final_snapshot = true         
+  username                = var.db_master_username
+  password                = var.db_master_password
+  publicly_accessible     = false
+  vpc_security_group_ids  = [aws_security_group.resume_sg.id]
+  db_subnet_group_name    = aws_db_subnet_group.resume_subnet_group.name
+  multi_az                = false
+  backup_retention_period = 7
+  skip_final_snapshot     = true
 }
