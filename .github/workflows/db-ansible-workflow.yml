@@ -1,0 +1,129 @@
+name: ec2-db workflow
+
+on: workflow_dispatch
+
+permissions:
+  actions: read    
+  contents: read
+
+jobs:
+  vpc:
+    name: 'Terraform ansible-sql-ec2'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout GitHub Actions'
+        uses: actions/checkout@v4
+
+      # Step 1: Get the Previous Run ID of s3-workflow using GitHub API
+      - name: 'Get Previous s3-workflow Run ID'
+        id: get_run_id
+        run: |
+          response=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/118562480/runs?per_page=1&status=completed")
+
+          echo "API Response: $response"
+
+          run_id=$(echo $response | jq -r '.workflow_runs[0].id')
+          echo "Previous s3-workflow run ID: $run_id"
+
+          echo "run_id=$run_id" >> $GITHUB_ENV
+
+      # Step 2: Get Artifact ID using GitHub API
+      - name: 'Get Artifact ID of s3-workflow'
+        id: get_artifact_id
+        run: |
+          response=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ env.run_id }}/artifacts")
+
+          artifact_id=$(echo $response | jq -r '.artifacts[] | select(.name == "s3-bucket-name") | .id')
+          echo "Artifact ID: $artifact_id"
+
+          echo "artifact_id=$artifact_id" >> $GITHUB_ENV
+
+      # Step 3: Use GitHub API to Download Artifact using run_id
+      - name: 'Download Artifact using GitHub API'
+        run: |
+          curl -L \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -o artifact.zip \
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.artifact_id }}/zip"
+  
+      - name: 'Unzip Artifact'
+        run: unzip artifact.zip
+
+      # Step 4: Check if the S3 Bucket Artifact Downloaded Successfully
+      - name: 'Check if S3 Bucket Artifact Downloaded'
+        run: |
+          if [ -f s3_bucket_name.txt ]; then
+            echo "Artifact downloaded successfully."
+          else
+            echo "Artifact download failed or file does not exist."
+            exit 1
+          fi
+
+      # Step 5: Read S3 Bucket Name
+      - name: 'Read S3 Bucket Name'
+        run: |
+          s3_bucket=$(cat s3_bucket_name.txt)
+          echo "s3_bucket=$s3_bucket" >> $GITHUB_ENV
+
+      # Step 6: Setup Terraform
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.6
+
+      # Step 7: Configure AWS Credentials
+      - name: 'Configure AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: eu-central-1
+
+       # Step 8: Initialize Terraform with S3 Backend
+      - name: 'Terraform Init'
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.s3_bucket }}" \
+            -backend-config="key=${{ env.s3_bucket }}/vpc/terraform.tfstate" \
+            -backend-config="region=eu-central-1"
+        working-directory: ./modules/db-ec2
+        
+      # Step 9: Terraform Plan for VPC
+      - name: 'Terraform Plan'
+        run: terraform plan
+        working-directory: ./modules/db-ec2
+    
+      # Step 10: Terraform Apply for VPC
+      - name: 'Terraform Apply'
+        run: terraform apply -auto-approve
+        working-directory: ./modules/db-ec2
+
+      # Step 11: Extract EC2 Instance ID from Terraform Output
+      - name: Get EC2 Instance ID
+        id: instance_id
+        run: |
+          INSTANCE_ID=$(terraform output -raw ec2_instance_id)
+          echo "EC2 Instance ID: $INSTANCE_ID"
+          echo "::set-output name=instance_id::$INSTANCE_ID"
+        working-directory: ./modules/db-ec2
+
+      # Step 12: Run Ansible Playbook via SSM
+      - name: Run Ansible Playbook via SSM
+        env:
+          INSTANCE_ID: ${{ steps.instance_id.outputs.instance_id }}
+          DB_USER: ${{ secrets.DB_USER }}  
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }} 
+        run: |
+          aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --targets "Key=instanceIds,Values=${INSTANCE_ID}" \
+            --parameters 'commands=["ansible-playbook /db-ec2/install-mysql.yml"]' \
+            --comment "Running Ansible playbook to install and configure MySQL"
+
+      
