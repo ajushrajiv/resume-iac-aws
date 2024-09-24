@@ -8,7 +8,7 @@ data "terraform_remote_state" "vpc" {
 }
 
 resource "aws_db_subnet_group" "resume_subnet_group" {
-  name = "rds-subnet-group"
+  name = "container-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1b,

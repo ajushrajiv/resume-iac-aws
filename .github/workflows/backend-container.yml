@@ -74,6 +74,28 @@ jobs:
             s3_bucket=$(cat s3_bucket_name.txt)
             echo "s3_bucket=$s3_bucket" >> $GITHUB_ENV
 
+      # Check if the IAM Role Already Exists
+      - name: 'Check if ecsTaskExecutionRole exists'
+        id: check_role
+        run: |
+          if aws iam get-role --role-name ecsTaskExecutionRole; then
+            echo "IAM Role ecsTaskExecutionRole exists"
+            echo "ROLE_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "IAM Role ecsTaskExecutionRole does not exist"
+            echo "ROLE_EXISTS=false" >> $GITHUB_ENV
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-central-1
+
+    # Import the IAM Role into Terraform state if it exists
+      - name: 'Import ecsTaskExecutionRole to Terraform state'
+        if: env.ROLE_EXISTS == 'true'
+        run: |
+          terraform import aws_iam_role.ecs_task_execution_role ecsTaskExecutionRole
+        working-directory: ./modules/container-fargate
+
       - name: 'Setup Terraform'
         uses: hashicorp/setup-terraform@v3
         with:
