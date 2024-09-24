@@ -16,7 +16,7 @@ resource "aws_db_subnet_group" "resume_subnet_group" {
   ]
 }
 
-resource "aws_security_group" "resume_sg" {
+resource "aws_security_group" "resume_rds_sg" {
   name        = "rds-sg"
   description = "Allow access to RDS"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -25,7 +25,14 @@ resource "aws_security_group" "resume_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = [data.terraform_remote_state.vpc.outputs.vpc_cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -39,7 +46,7 @@ resource "aws_db_instance" "resume_db_instance" {
   username                = var.db_master_username
   password                = var.db_master_password
   publicly_accessible     = false
-  vpc_security_group_ids  = [aws_security_group.resume_sg.id]
+  vpc_security_group_ids  = [aws_security_group.resume_rds_sg.id]
   db_subnet_group_name    = aws_db_subnet_group.resume_subnet_group.name
   multi_az                = false
   backup_retention_period = 7
