@@ -127,7 +127,11 @@ resource "aws_ecs_service" "resume_service" {
   desired_count   = 1
   launch_type     = "FARGATE"
   network_configuration {
-    subnets          = data.terraform_remote_state.vpc.outputs.public_subnet_ids
+    subnets = [
+      data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
+      data.terraform_remote_state.vpc.outputs.public_subnet_id_1b,
+      data.terraform_remote_state.vpc.outputs.public_subnet_id_1c
+    ]
     security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
