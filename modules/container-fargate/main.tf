@@ -34,13 +34,13 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   egress {
-    from_port   = 3306
-    to_port     = 3306
-    protocol    = "tcp"
+    from_port = 3306
+    to_port   = 3306
+    protocol  = "tcp"
     cidr_blocks = [
       data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1a,
       data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1b,
-      data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1c      
+      data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1c
     ]
   }
 
