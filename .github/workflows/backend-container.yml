@@ -1,0 +1,116 @@
+name: backend-container-matchmyresume
+
+on: workflow_dispatch
+
+permissions:
+  actions: read    
+  contents: read
+
+jobs:
+  backend-container:
+    name: 'Terraform backend-container'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout GitHub Actions'
+        uses: actions/checkout@v4
+
+    # Step 1: Get the Previous Run ID of s3-workflow using GitHub API
+      - name: 'Get Previous s3-workflow Run ID'
+        id: get_run_id
+        run: |
+            response=$(curl -s \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/workflows/118562480/runs?per_page=1&status=completed")
+
+            echo "API Response: $response"
+
+            run_id=$(echo $response | jq -r '.workflow_runs[0].id')
+            echo "Previous s3-workflow run ID: $run_id"
+
+            echo "run_id=$run_id" >> $GITHUB_ENV
+
+    # Step 2: Get Artifact ID using GitHub API
+      - name: 'Get Artifact ID of s3-workflow'
+        id: get_artifact_id
+        run: |
+          # Get the artifacts for the specific workflow run
+          response=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ env.run_id }}/artifacts")
+
+          # Extract the artifact ID for s3-bucket-name
+          artifact_id=$(echo $response | jq -r '.artifacts[] | select(.name == "s3-bucket-name") | .id')
+          echo "Artifact ID: $artifact_id"
+
+          # Save artifact_id to environment variable
+          echo "artifact_id=$artifact_id" >> $GITHUB_ENV
+
+    # Step 3: Use GitHub API to Download Artifact using run_id
+      - name: 'Download Artifact using GitHub API'
+        run: |
+            echo "Downloading artifact from run ID: ${{ env.run_id }}"
+            curl -L \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -o artifact.zip \
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.artifact_id }}/zip"
+
+      - name: 'Unzip Artifact'
+        run: unzip artifact.zip
+
+    # Step 4: Check if the S3 Bucket Artifact Downloaded Successfully
+      - name: 'Check if S3 Bucket Artifact Downloaded'
+        run: |
+            if [ -f s3_bucket_name.txt ]; then
+                echo "Artifact downloaded successfully."
+            else
+                echo "Artifact download failed or file does not exist."
+                exit 1
+            fi
+
+     # Step 5: Read S3 Bucket Name
+      - name: 'Read S3 Bucket Name'
+        run: |
+            s3_bucket=$(cat s3_bucket_name.txt)
+            echo "s3_bucket=$s3_bucket" >> $GITHUB_ENV
+
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.6
+
+      - name: 'Configure AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: eu-central-1
+
+      - name: 'Terraform Init for backend-container'
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.s3_bucket }}" \
+            -backend-config="key=${{ env.s3_bucket }}/backend-container/terraform.tfstate" \
+            -backend-config="region=eu-central-1"
+        working-directory: ./modules/container-fargate
+
+      - name: 'Terraform Format'
+        run: terraform fmt --check
+        working-directory: ./modules/container-fargate
+
+      - name: 'Terraform Validate'
+        run: terraform validate
+        working-directory: ./modules/container-fargate
+
+      - name: 'Terraform Apply'
+        env:
+            TF_VAR_ecr_image_url: ${{ secrets.ecr_image_url }}
+            TF_VAR_db_user: ${{ secrets.DATABASE_USER }}
+            TF_VAR_db_password: ${{ secrets.DATABASE_PASSWORD }}
+            TF_VAR_port: ${{ secrets.PORT }}
+            TF_VAR_node_env: ${{ secrets.NODE_ENV }}
+            TF_VAR_access_token: ${{ secrets.ACCESS_TOKEN_SECRET }}
+            TF_VAR_refresh_token: ${{ secrets.REFRESH_ACCESS_TOKEN }}
+        run: terraform apply -auto-approve
+        working-directory: ./modules/container-fargate

@@ -48,5 +48,86 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
+resource "aws_ecs_task_definition" "resume_task" {
+  family                   = "resume-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "resume-backend"
+      image     = var.ecr_image_url
+      cpu       = 256
+      memory    = 512
+      essential = true
+      portMappings = [
+        {
+          containerPort = 3000
+          hostPort      = 3000
+          protocol      = "tcp"
+        }
+      ]
+      environment = [
+        {
+          name  = "DB_HOST"
+          value = data.terraform_remote_state.rds.outputs.rds_private_ip
+        },
+        {
+          name  = "DATABASE_USER"
+          value = var.db_user
+        },
+        {
+          name  = "DATABASE_PASSWORD"
+          value = var.db_password
+        },
+        {
+          name  = "DATABASE_NAME"
+          value = data.terraform_remote_state.rds.outputs.rds_db_name
+        },
+        {
+          name  = "PORT"
+          value = var.port
+        },
+        {
+          name  = "NODE_ENV"
+          value = var.node_env
+        },
+        {
+          name  = "ACCESS_TOKEN_SECRET"
+          value = var.access_token
+        },
+        {
+          name  = "REFRESH_ACCESS_TOKEN"
+          value = var.refresh_token
+        },
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_cluster" "resume_cluster" {
+  name = "resume-cluster"
+  tags = {
+    Name = "resume-cluster"
+  }
+}
+
+resource "aws_ecs_service" "resume_service" {
+  name            = "resume-service"
+  cluster         = aws_ecs_cluster.resume_cluster.id
+  task_definition = aws_ecs_task_definition.resume_task.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+  network_configuration {
+    subnets          = data.terraform_remote_state.vpc.outputs.public_subnet_ids
+    security_groups  = [aws_security_group.ecs_sg.id]
+    assign_public_ip = true
+  }
+}
+
 
 
