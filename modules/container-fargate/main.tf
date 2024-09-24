@@ -37,7 +37,11 @@ resource "aws_security_group" "ecs_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = [data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block]
+    cidr_blocks = [
+      data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1a,
+      data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1b,
+      data.terraform_remote_state.vpc.outputs.private_subnet_cidr_block_1c      
+    ]
   }
 
   ingress {
