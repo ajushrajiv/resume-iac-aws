@@ -138,6 +138,6 @@ resource "aws_ecs_service" "resume_service" {
   load_balancer {
     target_group_arn = aws_lb_target_group.resume_backend_tg.arn
     container_name   = "resume-backend"
-    container_port   = var.port
+    container_port   = 3000
   }
 }
