@@ -99,7 +99,7 @@ resource "aws_ecs_task_definition" "resume_task" {
       environment = [
         {
           name  = "DB_HOST"
-          value = data.terraform_remote_state.rds-sql.outputs.rds_private_ip
+          value = data.terraform_remote_state.rds-sql.outputs.rds_private_address
         },
         {
           name  = "DATABASE_USER"
