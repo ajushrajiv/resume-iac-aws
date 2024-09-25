@@ -16,4 +16,7 @@ output "rds_private_ip" {
   value       = aws_db_instance.resume_db_instance.id
 }
 
+output "rds_security_group_id" {
+  value = aws_security_group.resume_rds_sg.id
+}
 

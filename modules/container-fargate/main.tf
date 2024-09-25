@@ -73,6 +73,15 @@ resource "aws_security_group" "ecs_sg" {
   }
 }
 
+resource "aws_security_group_rule" "allow_ecs_to_rds" {
+  type                     = "ingress"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = data.terraform_remote_state.rds-sql.outputs.rds_security_group_id
+  source_security_group_id = aws_security_group.ecs_sg.id
+}
+
 resource "aws_ecs_task_definition" "resume_task" {
   family                   = "resume-task"
   network_mode             = "awsvpc"
