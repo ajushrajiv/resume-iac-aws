@@ -137,3 +137,51 @@ jobs:
             TF_VAR_refresh_token: ${{ secrets.REFRESH_ACCESS_TOKEN }}
         run: terraform apply -auto-approve
         working-directory: ./modules/container-fargate
+
+      - name: 'Wait for ECS Service to Stabilize'
+        run: |
+          CLUSTER_NAME="resume-cluster"
+          SERVICE_NAME="resume-service"
+          STATUS="PENDING"
+          # Poll ECS Service to check if it's active
+          while [ "$STATUS" != "ACTIVE" ]; do
+            STATUS=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query "services[0].deployments[0].status" --output text)
+            echo "ECS Service status: $STATUS"
+            if [ "$STATUS" == "ACTIVE" ]; then
+              echo "ECS Service is active!"
+              break
+            fi
+            sleep 10
+          done
+      
+      - name: 'Check RDS Connection from ECS Task using Netcat'
+        run: |
+          CLUSTER_NAME="resume-cluster"
+          TASK_ARN=$(aws ecs list-tasks --cluster $CLUSTER_NAME --desired-status RUNNING --query "taskArns[0]" --output text)
+          ENI=$(aws ecs describe-tasks --cluster $CLUSTER_NAME --tasks $TASK_ARN --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" --output text)
+          PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI --query "NetworkInterfaces[0].Association.PublicIp" --output text)
+      
+          # Check the connection to the RDS host on port 3306 using Netcat
+          echo "Testing RDS connection on ${DB_HOST}:${DB_PORT} from ECS Task IP: $PUBLIC_IP"
+          ssh -o StrictHostKeyChecking=no ec2-user@$PUBLIC_IP "nc -zv ${DB_HOST} 3306"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: eu-central-1
+          DB_HOST: ${{ secrets.RDS_HOST }}
+          DB_PORT: "3306"
+    
+      - name: 'Check Load Balancer Target Group Health'
+        run: |
+          TG_ARN=$(aws elbv2 describe-target-groups --names resume-backend-target-group --query "TargetGroups[0].TargetGroupArn" --output text)
+          HEALTH_STATUS="UNHEALTHY"
+          while [ "$HEALTH_STATUS" != "HEALTHY" ]; do
+            HEALTH_STATUS=$(aws elbv2 describe-target-health --target-group-arn $TG_ARN --query "TargetHealthDescriptions[0].TargetHealth.State" --output text)
+            echo "Target Group Health Status: $HEALTH_STATUS"
+            if [ "$HEALTH_STATUS" == "HEALTHY" ]; then
+              echo "Target Group is healthy!"
+              break
+            fi
+            sleep 10
+          done
+        

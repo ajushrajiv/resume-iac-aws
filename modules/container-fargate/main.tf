@@ -91,8 +91,8 @@ resource "aws_ecs_task_definition" "resume_task" {
       essential = true
       portMappings = [
         {
-          containerPort = 3000
-          hostPort      = 3000
+          containerPort = 5555
+          hostPort      = 5555
           protocol      = "tcp"
         }
       ]
@@ -159,6 +159,6 @@ resource "aws_ecs_service" "resume_service" {
   load_balancer {
     target_group_arn = aws_lb_target_group.resume_backend_tg.arn
     container_name   = "resume-backend"
-    container_port   = 3000
+    container_port   = 5555
   }
 }

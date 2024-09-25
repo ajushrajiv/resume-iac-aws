@@ -14,7 +14,7 @@ resource "aws_lb" "resume_backend_lb" {
 
 resource "aws_lb_target_group" "resume_backend_tg" {
   name        = "resume-backend-target-group"
-  port        = 3000
+  port        = 5555
   protocol    = "HTTP"
   vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
   target_type = "ip"
