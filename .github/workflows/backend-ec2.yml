@@ -1,0 +1,108 @@
+name: backend-container-matchmyresume
+
+on: 
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  backend-container:
+    name: 'Terraform backend-container'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout GitHub Actions'
+        uses: actions/checkout@v4
+
+      - name: 'Get Previous s3-workflow Run ID'
+        id: get_run_id
+        run: |
+            response=$(curl -s \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/workflows/118562480/runs?per_page=1&status=completed")
+
+            run_id=$(echo $response | jq -r '.workflow_runs[0].id')
+            echo "run_id=$run_id" >> $GITHUB_ENV
+
+      - name: 'Download Artifact'
+        run: |
+            echo "Downloading artifact from run ID: ${{ env.run_id }}"
+            curl -L \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -o artifact.zip \
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.run_id }}/zip"
+
+      - name: 'Unzip Artifact'
+        run: unzip artifact.zip
+
+      - name: 'Read S3 Bucket Name'
+        run: |
+            s3_bucket=$(cat s3_bucket_name.txt)
+            echo "s3_bucket=$s3_bucket" >> $GITHUB_ENV
+
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.6
+
+      - name: 'Configure AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: 'Terraform Init'
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ env.s3_bucket }}" \
+            -backend-config="key=${{ env.s3_bucket }}/backend-ec2/terraform.tfstate" \
+            -backend-config="region=eu-central-1"
+        working-directory: ./modules/ec2-backend
+
+      - name: 'Terraform Format'
+        run: terraform fmt --check
+        working-directory: ./modules/ec2-backend
+
+      - name: 'Terraform Validate'
+        run: terraform validate
+        working-directory: ./modules/ec2-backend
+
+      - name: 'Fetch RDS Endpoint from Terraform State'
+        id: get_rds_endpoint
+        run: |
+          rds_endpoint=$(terraform output -raw rds_endpoint)
+          echo "RDS Endpoint: $rds_endpoint"
+          echo "rds_endpoint=$rds_endpoint" >> $GITHUB_ENV
+        working-directory: ./modules/ec2-backend
+
+      - name: 'Terraform Apply'
+        env:
+            TF_VAR_db_user: ${{ secrets.DATABASE_USER }}
+            TF_VAR_db_password: ${{ secrets.DATABASE_PASSWORD }}
+            TF_VAR_db_name: ${{ secrets.DATABASE_NAME }}
+            TF_VAR_app_port: ${{ secrets.PORT }}
+            TF_VAR_node_env: ${{ secrets.NODE_ENV }}
+            TF_VAR_access_token_secret: ${{ secrets.ACCESS_TOKEN_SECRET }}
+            TF_VAR_refresh_token_secret: ${{ secrets.REFRESH_ACCESS_TOKEN }}
+            TF_VAR_db_host: ${{ env.rds_endpoint }}
+        run: terraform apply -auto-approve
+        working-directory: ./modules/ec2-backend
+
+      - name: 'Fetch EC2 Instance IP'
+        id: get_ec2_ip
+        run: |
+          instance_id=$(terraform output -raw instance_id)
+          ec2_ip=$(aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+          echo "EC2_IP=$ec2_ip" >> $GITHUB_ENV
+        working-directory: ./modules/ec2-backend
+
+      - name: 'Check RDS Connection from EC2'
+        run: |
+          echo "Connecting to EC2 Instance: ${{ env.EC2_IP }} and testing RDS connection"
+          ssh -o StrictHostKeyChecking=no -i /path/to/your/private-key.pem ec2-user@${{ env.EC2_IP }} \
+          "nc -zv ${RDS_ENDPOINT} 3306"
+        env:
+          RDS_ENDPOINT: ${{ env.rds_endpoint }}
