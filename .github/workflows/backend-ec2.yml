@@ -1,4 +1,4 @@
-name: backend-container-matchmyresume
+name: backend-ec2-matchmyresume
 
 on: 
   workflow_dispatch:
@@ -8,8 +8,8 @@ permissions:
   contents: read
 
 jobs:
-  backend-container:
-    name: 'Terraform backend-container'
+  backend-ec2:
+    name: 'Terraform backend-ec2'
     runs-on: ubuntu-latest
 
     steps:
