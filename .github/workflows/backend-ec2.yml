@@ -47,7 +47,7 @@ jobs:
             curl -L \
                 -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
                 -o artifact.zip \
-                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.run_id }}/zip"
+                "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/${{ env.artifact_id }}/zip"
 
       - name: 'Unzip Artifact'
         run: unzip artifact.zip
