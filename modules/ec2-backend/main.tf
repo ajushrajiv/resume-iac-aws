@@ -25,8 +25,16 @@ data "terraform_remote_state" "rds-sql" {
   }
 }
 
-output "rds_endpoint" {
-  value = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
+variable "db_host" {
+  description = "Database host(RDS endpoint)"
+  type        = string
+  default     = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
+}
+
+variable "db_name" {
+  description = "Database name"
+  type        = string
+  default     = data.terraform_remote_state.rds-sql.outputs.rds_db_name
 }
 
 resource "aws_security_group" "ec2_backend_sg" {
