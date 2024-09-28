@@ -25,8 +25,8 @@ data "terraform_remote_state" "rds-sql" {
   }
 }
 
-output "rds_endpoint" {
-  value = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
+output "rds_private_address" {
+  value = data.terraform_remote_state.rds-sql.outputs.rds_private_address
 }
 
 resource "aws_security_group" "ec2_backend_sg" {
@@ -107,10 +107,10 @@ data "template_file" "user_data" {
   template = file("${path.module}/docker-compose-template.sh")
 
   vars = {
-    DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
+    DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_private_address
     DB_USER              = var.db_user
     DB_PASSWORD          = var.db_password
-    DB_NAME              = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
+    DB_NAME              = matchmyresume_app
     PORT                 = var.port
     NODE_ENV             = var.node_env
     ACCESS_TOKEN_SECRET  = var.access_token
