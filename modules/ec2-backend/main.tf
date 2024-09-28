@@ -110,7 +110,7 @@ data "template_file" "user_data" {
     DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_private_address
     DB_USER              = var.db_user
     DB_PASSWORD          = var.db_password
-    DB_NAME              = matchmyresume_app
+    DB_NAME              = var.db_name
     PORT                 = var.port
     NODE_ENV             = var.node_env
     ACCESS_TOKEN_SECRET  = var.access_token

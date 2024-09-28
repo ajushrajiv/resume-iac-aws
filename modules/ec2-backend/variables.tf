@@ -33,3 +33,8 @@ variable "refresh_token" {
   description = "refresh token for user authentication"
   type        = string
 }
+
+variable "db_name" {
+  description = "name of the db"
+  type        = string
+}
