@@ -51,6 +51,13 @@ resource "aws_security_group" "ec2_backend_sg" {
   }
 
   egress {
+    from_port   = 5555
+    to_port     = 5555
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
     from_port = 3306
     to_port   = 3306
     protocol  = "tcp"
@@ -71,6 +78,13 @@ resource "aws_security_group" "ec2_backend_sg" {
   ingress {
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 5555
+    to_port     = 5555
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
