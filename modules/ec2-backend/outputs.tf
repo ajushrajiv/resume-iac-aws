@@ -3,3 +3,6 @@ output "instance_public_ip" {
   value       = aws_instance.backend_instance.id
 }
 
+output "rds_private_address" {
+  value = data.terraform_remote_state.rds-sql.outputs.rds_private_address
+}
