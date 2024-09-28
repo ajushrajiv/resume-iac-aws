@@ -90,8 +90,8 @@ data "template_file" "user_data" {
 
   vars = {
     DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
-    DATABASE_USER        = var.db_user
-    DATABASE_PASSWORD    = var.db_password
+    DB_USER              = var.db_user
+    DB_PASSWORD          = var.db_password
     DB_NAME              = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
     PORT                 = var.port
     NODE_ENV             = var.node_env
