@@ -89,7 +89,8 @@ jobs:
       - name: 'Fetch RDS Endpoint from Terraform State'
         id: get_rds_endpoint
         run: |
-          echo "RDS_ENDPOINT=${{ steps.get_remote_state.outputs.rds_endpoint }}" >> $GITHUB_ENV
+          rds_endpoint=$(terraform output -raw rds_endpoint)
+          echo "RDS_ENDPOINT=$rds_endpoint" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
       - name: 'Terraform Apply'
