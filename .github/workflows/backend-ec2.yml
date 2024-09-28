@@ -89,8 +89,8 @@ jobs:
       - name: 'Fetch RDS Endpoint from Terraform State'
         id: get_rds_endpoint
         run: |
-          rds_endpoint=$(terraform output -raw rds_endpoint)
-          echo "RDS_ENDPOINT=$rds_endpoint" >> $GITHUB_ENV
+          rds_private_address=$(terraform output -raw rds_private_address)
+          echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
       - name: 'Terraform Apply'
@@ -102,7 +102,7 @@ jobs:
             TF_VAR_node_env: ${{ secrets.NODE_ENV }}
             TF_VAR_access_token_secret: ${{ secrets.ACCESS_TOKEN_SECRET }}
             TF_VAR_refresh_token_secret: ${{ secrets.REFRESH_ACCESS_TOKEN }}
-            TF_VAR_db_host: ${{ env.rds_endpoint }}
+            TF_VAR_db_host: ${{ env.rds_private_address }}
         run: terraform apply -auto-approve
         working-directory: ./modules/ec2-backend
 
