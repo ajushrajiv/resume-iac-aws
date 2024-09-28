@@ -20,8 +20,8 @@ services:
     image: anrajiv/matchmyresume-backend:latest
     environment:
       - DB_HOST=${DB_HOST}
-      - DB_USERNAME=${DATABASE_USER}
-      - DB_PASSWORD=${DATABASE_PASSWORD}
+      - DB_USERNAME=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - PORT=${PORT}
       - NODE_ENV=${NODE_ENV}
