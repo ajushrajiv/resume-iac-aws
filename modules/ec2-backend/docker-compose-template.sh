@@ -12,6 +12,15 @@ sudo usermod -aG docker ubuntu
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
+echo "DB_HOST=${DB_HOST}"
+echo "DB_USERNAME=${DB_USER}"
+echo "DB_PASSWORD=${DB_PASSWORD}"
+echo "DB_NAME=${DB_NAME}"
+echo "PORT=${PORT}"
+echo "NODE_ENV=${NODE_ENV}"
+echo "ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}"
+echo "REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}"
+
 # Create Docker Compose file dynamically with passed environment variables
 cat <<EOL > docker-compose.yml
 version: '3'
@@ -19,14 +28,14 @@ services:
   app:
     image: anrajiv/matchmyresume-backend:latest
     environment:
-      - DB_HOST=resume-db-instance.cnextk3vsye6.eu-central-1.rds.amazonaws.com
-      - DB_USERNAME=root
-      - DB_PASSWORD=root1234
-      - DB_NAME=matchmyresume_app
-      - PORT=5555
-      - NODE_ENV=dev
-      - ACCESS_TOKEN_SECRET=fa4f23c147cffde4334becb17c3aaf9eb0e9e567390ecbf8d337e6ce77ef5577e74a16e5aa22b6fdd178521df96f213276962a22a337b90f39e54dd5a6e0e1da
-      - REFRESH_ACCESS_TOKEN=9575187335cea5ab4794ac8bba0e5c2b53cd25d8cf6f3751da50282fc0cd47c15e2e69106123e3c0345059985008f7bc700192962480170c34abb7614727a916
+      - DB_HOST=${DB_HOST}
+      - DB_USERNAME=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - PORT=${PORT}
+      - NODE_ENV=${NODE_ENV}
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - REFRESH_ACCESS_TOKEN=${REFRESH_TOKEN_SECRET}
     ports:
       - "5555:5555"
 EOL
