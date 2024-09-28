@@ -102,7 +102,7 @@ data "template_file" "user_data" {
 
 resource "aws_instance" "backend_instance" {
   ami             = "ami-0e04bcbe83a83792e"
-  instance_type   = "t2.micro"
+  instance_type   = "t2.small"
   key_name        = "test-keypair"
   subnet_id       = data.terraform_remote_state.vpc.outputs.public_subnet_id_1a
   security_groups = [aws_security_group.ec2_backend_sg.id]
