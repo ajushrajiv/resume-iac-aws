@@ -26,7 +26,7 @@ data "terraform_remote_state" "rds-sql" {
 }
 
 output "rds_endpoint" {
-  value = data.terraform_remote_state.rds_sql.outputs.rds_endpoint
+  value = data.terraform_remote_state.rds-sql.outputs.rds_endpoint
 }
 
 resource "aws_security_group" "ec2_backend_sg" {
