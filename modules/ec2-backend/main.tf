@@ -8,7 +8,7 @@ data "terraform_remote_state" "vpc" {
 }
 
 resource "aws_db_subnet_group" "resume_subnet_group" {
-  name = "container-subnet-group"
+  name = "ec2-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1b,
@@ -57,7 +57,7 @@ resource "aws_security_group" "ec2_backend_sg" {
   egress {
     from_port   = 5555
     to_port     = 5555
-    protocol    = "-1"
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
