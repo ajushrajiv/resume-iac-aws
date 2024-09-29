@@ -90,32 +90,21 @@ jobs:
         id: check_state
         run: |
           state_file="matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate"
-          if aws s3 ls s3://$s3_bucket/$state_file; then
+          aws s3 ls s3://$s3_bucket/$state_file
+          if [ $? -eq 0 ]; then
             echo "State file exists."
+            echo "$output"
             echo "state_exists=true" >> $GITHUB_ENV
           else
             echo "State file does not exist."
             echo "state_exists=false" >> $GITHUB_ENV
+          fi
         continue-on-error: true
-
-      - name: 'Initialize Terraform with Backend State'
-        if: env.state_exists == 'true'
-        run: |
-          terraform init \
-            -backend-config="bucket=${{ env.s3_bucket }}" \
-            -backend-config="key=matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate" \
-            -backend-config="region=eu-central-1"
-        working-directory: ./modules/ec2-backend
 
       - name: 'Fetch RDS Endpoint from Terraform State'
         id: get_rds_endpoint
-        if: env.state_exists == 'true'
         run: |
           rds_private_address=$(terraform output -state="s3::${{ env.s3_bucket }}/matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate" -raw rds_private_address)
-          if [ -z "$rds_private_address" ]; then
-            echo "RDS private address not found in Terraform state."
-            exit 1
-          fi
           echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
