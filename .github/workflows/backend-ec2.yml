@@ -113,27 +113,8 @@ jobs:
         id: get_rds_endpoint
         if: env.state_exists == 'true'
         run: |
-          state_file="matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate"
-          aws s3 ls s3://$s3_bucket/$state_file
-          if [ $? -eq 0 ]; then
-            echo "State file exists."
-            echo "$output"
-            echo "state_exists=true" >> $GITHUB_ENV
-
-            # Download the state file
-            aws s3 cp s3://$s3_bucket/$state_file ./terraform.tfstate
-            echo "state_exists=true" >> $GITHUB_ENV
-
-            # Display the contents of the state file
-            echo "Displaying contents of the state file:"
-            terraform output -state=./terraform.tfstate
-          else
-            echo "State file does not exist."
-            echo "state_exists=false" >> $GITHUB_ENV
-          fi
-          
           # Fetch RDS private address
-          rds_private_address=$(terraform output -state=./terraform.tfstate rds_private_address 2>/dev/null)
+          rds_private_address=$(terraform outputs -state=./terraform.tfstate rds_private_address 2>/dev/null)
           if [ -z "$rds_private_address" ]; then
             echo "RDS private address not found in Terraform state!"
             exit 1
@@ -143,7 +124,7 @@ jobs:
           fi
           
           # Fetch RDS DB name
-          rds_db_name=$(terraform output -state=./terraform.tfstate rds_db_name 2>/dev/null)
+          rds_db_name=$(terraform outputs -state=./terraform.tfstate rds_db_name 2>/dev/null)
           if [ -z "$rds_db_name" ]; then
             echo "RDS DB name not found in Terraform state!"
             exit 1
@@ -153,7 +134,7 @@ jobs:
           fi
           
           # Fetch RDS endpoint
-          rds_endpoint=$(terraform output -state=./terraform.tfstate rds_endpoint 2>/dev/null)
+          rds_endpoint=$(terraform outputs -state=./terraform.tfstate rds_endpoint 2>/dev/null)
           if [ -z "$rds_endpoint" ]; then
             echo "RDS endpoint not found in Terraform state!"
             exit 1
