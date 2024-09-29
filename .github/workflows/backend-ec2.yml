@@ -95,6 +95,13 @@ jobs:
             echo "State file exists."
             echo "$output"
             echo "state_exists=true" >> $GITHUB_ENV
+
+            # Download the state file
+            aws s3 cp s3://$s3_bucket/$state_file ./terraform.tfstate
+
+            # Display the contents of the state file
+            echo "Displaying contents of the state file:"
+            cat terraform.tfstate
           else
             echo "State file does not exist."
             echo "state_exists=false" >> $GITHUB_ENV
