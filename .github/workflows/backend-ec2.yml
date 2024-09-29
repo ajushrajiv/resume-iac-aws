@@ -103,6 +103,9 @@ jobs:
             # Display the contents of the state file
             echo "Displaying contents of the state file:"
             terraform output -state=./terraform.tfstate
+
+            rds_private_address=$(terraform output -state=./terraform.tfstate rds_private_address)
+            echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
           else
             echo "State file does not exist."
             echo "state_exists=false" >> $GITHUB_ENV
