@@ -102,7 +102,7 @@ jobs:
 
             # Display the contents of the state file
             echo "Displaying contents of the state file:"
-            cat terraform.tfstate
+            terraform output -state=./terraform.tfstate
           else
             echo "State file does not exist."
             echo "state_exists=false" >> $GITHUB_ENV
@@ -118,6 +118,14 @@ jobs:
           else
             echo "State file does not exist, skipping RDS endpoint fetch."
           fi
+
+          # Fetch RDS DB name
+          rds_db_name=$(terraform output -state=./terraform.tfstate -raw rds_db_name 2>/dev/null)
+          echo "rds_db_name=$rds_db_name" >> $GITHUB_ENV
+    
+          # Fetch RDS endpoint
+          rds_endpoint=$(terraform output -state=./terraform.tfstate -raw rds_endpoint 2>/dev/null)
+          echo "rds_endpoint=$rds_endpoint" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
       - name: 'Terraform Apply'
