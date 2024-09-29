@@ -114,21 +114,34 @@ jobs:
         if: env.state_exists == 'true'
         run: |
           # Fetch RDS private address
-          rds_private_address=$(terraform output -state=./terraform.tfstate -raw rds_private_address 2>/dev/null)
+          rds_private_address=$(terraform output -state=./terraform.tfstate rds_private_address 2>/dev/null)
           if [ -z "$rds_private_address" ]; then
             echo "RDS private address not found in Terraform state!"
             exit 1
           else
             echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
+            echo "Fetched RDS private address: '$rds_private_address'"
           fi
           
           # Fetch RDS DB name
-          rds_db_name=$(terraform output -state=./terraform.tfstate -raw rds_db_name 2>/dev/null)
-          echo "rds_db_name=$rds_db_name" >> $GITHUB_ENV
+          rds_db_name=$(terraform output -state=./terraform.tfstate rds_db_name 2>/dev/null)
+          if [ -z "$rds_db_name" ]; then
+            echo "RDS DB name not found in Terraform state!"
+            exit 1
+          else
+            echo "rds_db_name=$rds_db_name" >> $GITHUB_ENV
+            echo "Fetched RDS DB name: '$rds_db_name'"
+          fi
           
           # Fetch RDS endpoint
-          rds_endpoint=$(terraform output -state=./terraform.tfstate -raw rds_endpoint 2>/dev/null)
-          echo "rds_endpoint=$rds_endpoint" >> $GITHUB_ENV
+          rds_endpoint=$(terraform output -state=./terraform.tfstate rds_endpoint 2>/dev/null)
+          if [ -z "$rds_endpoint" ]; then
+            echo "RDS endpoint not found in Terraform state!"
+            exit 1
+          else
+            echo "rds_endpoint=$rds_endpoint" >> $GITHUB_ENV
+            echo "Fetched RDS endpoint: '$rds_endpoint'"
+          fi        
         working-directory: ./modules/ec2-backend
 
       - name: 'Terraform Apply'
