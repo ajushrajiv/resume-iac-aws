@@ -25,6 +25,10 @@ data "terraform_remote_state" "rds-sql" {
   }
 }
 
+output "rds_private_address" {
+  value = data.terraform_remote_state.rds-sql.outputs.rds_private_address
+}
+
 resource "aws_security_group" "ec2_backend_sg" {
   name   = "ec2-backend-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id

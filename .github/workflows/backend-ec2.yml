@@ -89,8 +89,12 @@ jobs:
       - name: 'Fetch RDS Endpoint from Terraform State'
         id: get_rds_endpoint
         run: |
-          rds_private_address=$(terraform output -raw rds_private_address)
-          echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
+          terraform init \
+            -backend-config="bucket=${{ env.s3_bucket }}" \
+            -backend-config="key=path/to/rds/terraform.tfstate" \
+            -backend-config="region=eu-central-1"
+            rds_private_address=$(terraform output -raw rds_private_address)
+            echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
       - name: 'Terraform Apply'
