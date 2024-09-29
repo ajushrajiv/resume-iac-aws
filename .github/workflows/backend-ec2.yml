@@ -111,8 +111,12 @@ jobs:
       - name: 'Fetch RDS Endpoint from Terraform State'
         id: get_rds_endpoint
         run: |
-          rds_private_address=$(terraform output -state="s3::${{ env.s3_bucket }}/matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate" -raw rds_private_address)
-          echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
+          if [[ "$state_exists" == "true" ]]; then
+            rds_private_address=$(terraform output -state=./terraform.tfstate -raw rds_private_address)
+            echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
+          else
+            echo "State file does not exist, skipping RDS endpoint fetch."
+          fi
         working-directory: ./modules/ec2-backend
 
       - name: 'Terraform Apply'
