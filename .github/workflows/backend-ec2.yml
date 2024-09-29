@@ -118,13 +118,13 @@ jobs:
 
       - name: 'Terraform Apply'
         env:
-            TF_VAR_db_user: ${{ secrets.DATABASE_USER }}
-            TF_VAR_db_password: ${{ secrets.DATABASE_PASSWORD }}
+            TF_VAR_db_user: ${{ secrets.DB_USER }}
+            TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
             TF_VAR_db_name: ${{ secrets.DATABASE_NAME }}
-            TF_VAR_app_port: ${{ secrets.PORT }}
+            TF_VAR_port: ${{ secrets.PORT }}
             TF_VAR_node_env: ${{ secrets.NODE_ENV }}
-            TF_VAR_access_token_secret: ${{ secrets.ACCESS_TOKEN_SECRET }}
-            TF_VAR_refresh_token_secret: ${{ secrets.REFRESH_ACCESS_TOKEN }}
+            TF_VAR_access_token: ${{ secrets.ACCESS_TOKEN_SECRET }}
+            TF_VAR_refresh_token: ${{ secrets.REFRESH_ACCESS_TOKEN }}
             TF_VAR_db_host: ${{ env.rds_private_address }}
         run: terraform apply -auto-approve
         working-directory: ./modules/ec2-backend
