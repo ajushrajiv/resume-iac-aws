@@ -86,10 +86,17 @@ jobs:
         run: terraform validate
         working-directory: ./modules/ec2-backend
 
+      - name: 'Check if Terraform State Exists'
+        id: check_state
+        run: |
+          state_file="matchmyresume-backend-state-demo--0788da0f74/matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate"
+          aws s3 ls s3://$s3_bucket/$state_file
+        continue-on-error: true
+
       - name: 'Fetch RDS Endpoint from Terraform State'
         id: get_rds_endpoint
         run: |
-          rds_private_address=$(terraform output -state="s3::${{ env.s3_bucket }}/matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate" -raw rds_private_address)
+          rds_private_address=$(terraform output -state="s3::${{ env.s3_bucket }}/matchmyresume-backend-state-demo--0788da0f74  /rds-sql/terraform.tfstate" -raw rds_private_address)
           echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
