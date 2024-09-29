@@ -107,7 +107,7 @@ data "template_file" "user_data" {
   template = file("${path.module}/docker-compose-template.sh")
 
   vars = {
-    DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_private_address
+    DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_private_address.value
     DB_USER              = var.db_user
     DB_PASSWORD          = var.db_password
     DB_NAME              = var.db_name
