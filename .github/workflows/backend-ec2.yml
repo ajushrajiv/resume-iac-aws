@@ -89,7 +89,7 @@ jobs:
       - name: 'Check if Terraform State Exists'
         id: check_state
         run: |
-          state_file="matchmyresume-backend-state-demo--0788da0f74/matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate"
+          state_file="matchmyresume-backend-state-demo--0788da0f74/rds-sql/terraform.tfstate"
           aws s3 ls s3://$s3_bucket/$state_file
         continue-on-error: true
 
