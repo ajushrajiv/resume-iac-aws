@@ -109,43 +109,6 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: 'Fetch RDS Endpoint from Terraform State'
-        id: get_rds_endpoint
-        if: env.state_exists == 'true'
-        run: |
-          cd ./modules/ec2-backend
-
-          # Fetch RDS private address
-          rds_private_address=$(terraform output -state=./terraform.tfstate)
-          if [ -z "$rds_private_address" ]; then
-            echo "RDS private address not found in Terraform state!"
-            exit 1
-          else
-            echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
-            echo "Fetched RDS private address: '$rds_private_address'"
-          fi
-          
-          # Fetch RDS DB name
-          rds_db_name=$(terraform output -state=./terraform.tfstate)
-          if [ -z "$rds_db_name" ]; then
-            echo "RDS DB name not found in Terraform state!"
-            exit 1
-          else
-            echo "rds_db_name=$rds_db_name" >> $GITHUB_ENV
-            echo "Fetched RDS DB name: '$rds_db_name'"
-          fi
-          
-          # Fetch RDS endpoint
-          rds_endpoint=$(terraform output -state=./terraform.tfstate)
-          if [ -z "$rds_endpoint" ]; then
-            echo "RDS endpoint not found in Terraform state!"
-            exit 1
-          else
-            echo "rds_endpoint=$rds_endpoint" >> $GITHUB_ENV
-            echo "Fetched RDS endpoint: '$rds_endpoint'"
-          fi        
-          working-directory: ./modules/ec2-backend
-
       - name: 'Terraform Apply'
         env:
             TF_VAR_db_user: ${{ secrets.DATABASE_USER }}
