@@ -98,6 +98,7 @@ jobs:
 
             # Download the state file
             aws s3 cp s3://$s3_bucket/$state_file ./terraform.tfstate
+            echo "state_exists=true" >> $GITHUB_ENV
 
             # Display the contents of the state file
             echo "Displaying contents of the state file:"
