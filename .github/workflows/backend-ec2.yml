@@ -116,7 +116,7 @@ jobs:
           cd ./modules/ec2-backend
 
           # Fetch RDS private address
-          rds_private_address=$(terraform output -state=./terraform.tfstate rds_private_address)
+          rds_private_address=$(terraform output -state=./terraform.tfstate)
           if [ -z "$rds_private_address" ]; then
             echo "RDS private address not found in Terraform state!"
             exit 1
@@ -126,7 +126,7 @@ jobs:
           fi
           
           # Fetch RDS DB name
-          rds_db_name=$(terraform output -state=./terraform.tfstate rds_db_name)
+          rds_db_name=$(terraform output -state=./terraform.tfstate)
           if [ -z "$rds_db_name" ]; then
             echo "RDS DB name not found in Terraform state!"
             exit 1
@@ -136,7 +136,7 @@ jobs:
           fi
           
           # Fetch RDS endpoint
-          rds_endpoint=$(terraform output -state=./terraform.tfstate rds_endpoint)
+          rds_endpoint=$(terraform output -state=./terraform.tfstate)
           if [ -z "$rds_endpoint" ]; then
             echo "RDS endpoint not found in Terraform state!"
             exit 1
