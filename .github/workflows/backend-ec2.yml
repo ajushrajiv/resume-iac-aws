@@ -109,6 +109,10 @@ jobs:
           fi
         continue-on-error: true
 
+      - name: 'Debug RDS Endpoint'
+        run: |
+          echo "RDS Private Address: ${{ env.rds_private_address }}"
+
       - name: 'Terraform Apply'
         env:
             TF_VAR_db_user: ${{ secrets.DATABASE_USER }}
