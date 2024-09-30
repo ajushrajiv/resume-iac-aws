@@ -113,7 +113,7 @@ resource "aws_security_group_rule" "allow_lb_to_backend" {
   to_port                  = 80
   protocol                 = "tcp"
   security_group_id        = aws_security_group.elb_asg_backend_sg.id
-  source_security_group_id = aws_lb.resume_backend_lb.security_groups[0]
+  source_security_group_id = aws_security_group.elb_asg_backend_sg.id
 }
 
 
