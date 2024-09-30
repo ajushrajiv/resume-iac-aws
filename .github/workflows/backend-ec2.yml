@@ -132,19 +132,11 @@ jobs:
         run: terraform apply -auto-approve
         working-directory: ./modules/ec2-backend
 
-      - name: 'Fetch EC2 Instance IP'
-        id: get_ec2_ip
+      - name: 'Fetch load balancer dns'
+        id: get_loadbalancer_dns
         run: |
           state_file="matchmyresume-backend-state-demo--0788da0f74/backend-ec2/terraform.tfstate"
           aws s3 ls s3://$s3_bucket/$state_file
-          instance_public_ip=$(terraform output -state=./terraform.tfstate instance_public_ip)
-          echo "instance_public_ip=$instance_public_ip" >> $GITHUB_ENV
+          load_balancer_dns=$(terraform output -state=./terraform.tfstate load_balancer_dns)
+          echo "load_balancer_dns=$load_balancer_dns" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
-
-      - name: 'Check RDS Connection from EC2'
-        run: |
-          echo "Connecting to EC2 Instance: ${{ env.instance_public_ip }} and testing RDS connection"
-          ssh -o StrictHostKeyChecking=no -i /path/to/your/private-key.pem ec2-user@${{ env.instance_public_ip }} \
-          "nc -zv ${RDS_ENDPOINT} 3306"
-        env:
-          RDS_ENDPOINT: ${{ env.rds_endpoint }}

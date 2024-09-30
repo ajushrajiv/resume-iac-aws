@@ -33,7 +33,7 @@ output "rds_db_name" {
   value = data.terraform_remote_state.rds-sql.outputs.rds_db_name
 }
 
-resource "aws_security_group" "ec2_backend_sg" {
+resource "aws_security_group" "elb_asg_backend_sg" {
   name   = "ec2-backend-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
@@ -104,8 +104,18 @@ resource "aws_security_group_rule" "allow_ec2_backend_to_rds" {
   to_port                  = 3306
   protocol                 = "tcp"
   security_group_id        = data.terraform_remote_state.rds-sql.outputs.rds_security_group_id
-  source_security_group_id = aws_security_group.ec2_backend_sg.id
+  source_security_group_id = aws_security_group.elb_asg_backend_sg.id
 }
+
+resource "aws_security_group_rule" "allow_lb_to_backend" {
+  type                     = "ingress"
+  from_port                = 80
+  to_port                  = 80
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.elb_asg_backend_sg.id
+  source_security_group_id = aws_lb.resume_backend_lb.security_groups
+}
+
 
 data "template_file" "user_data" {
   template = file("${path.module}/docker-compose-template.sh")
@@ -122,16 +132,89 @@ data "template_file" "user_data" {
   }
 }
 
-resource "aws_instance" "backend_instance" {
-  ami             = "ami-0e04bcbe83a83792e"
-  instance_type   = "t2.small"
-  key_name        = "test-keypair"
-  subnet_id       = data.terraform_remote_state.vpc.outputs.public_subnet_id_1a
-  security_groups = [aws_security_group.ec2_backend_sg.id]
+resource "aws_lb" "resume_backend_lb" {
+  name               = "resume-backend-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.ecs_sg.id]
+  subnets = [
+    data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
+    data.terraform_remote_state.vpc.outputs.public_subnet_id_1b,
+    data.terraform_remote_state.vpc.outputs.public_subnet_id_1c
+  ]
 
-  tags = {
-    Name = "Docker-EC2-Instance"
+  enable_deletion_protection = false
+}
+
+resource "aws_lb_target_group" "resume_backend_tg" {
+  name        = "resume-backend-target-group"
+  port        = 5555
+  protocol    = "HTTP"
+  vpc_id      = data.terraform_remote_state.vpc.outputs.vpc_id
+  target_type = "instance"
+
+  health_check {
+    path                = "/health"
+    protocol            = "HTTP"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
   }
+}
+
+resource "aws_lb_listener" "resume_backend_listener" {
+  load_balancer_arn = aws_lb.resume_backend_lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.resume_backend_tg.arn
+  }
+}
+
+resource "aws_launch_template" "backend_launch_template" {
+  name_prefix   = "backend-launch-template"
+  image_id      = "ami-0e04bcbe83a83792e"
+  instance_type = "t2.small"
+  key_name      = "test-keypair"
 
   user_data = data.template_file.user_data.rendered
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "Docker-Backend-ASG"
+    }
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.elb_asg_backend_sg.id]
+    subnet_id                   = data.terraform_remote_state.vpc.outputs.public_subnet_id_1a
+  }
+}
+
+resource "aws_autoscaling_group" "backend_asg" {
+  desired_capacity = 2
+  max_size         = 2
+  min_size         = 2
+  vpc_zone_identifier = [
+    data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
+    data.terraform_remote_state.vpc.outputs.public_subnet_id_1b
+  ]
+
+  launch_template {
+    id      = aws_launch_template.backend_launch_template.id
+    version = "$Latest"
+  }
+
+  target_group_arns = [aws_lb_target_group.resume_backend_tg.arn]
+
+  tag {
+    key                 = "Name"
+    value               = "Backend-ASG-Instance"
+    propagate_at_launch = true
+  }
 }
