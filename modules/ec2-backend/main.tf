@@ -136,7 +136,7 @@ resource "aws_lb" "resume_backend_lb" {
   name               = "resume-backend-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.ecs_sg.id]
+  security_groups    = [aws_security_group.elb_asg_backend_sg.id]
   subnets = [
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1b,
