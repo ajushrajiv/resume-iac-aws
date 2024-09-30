@@ -106,6 +106,9 @@ jobs:
 
             rds_private_address=$(terraform output -state=./terraform.tfstate rds_private_address)
             echo "rds_private_address=$rds_private_address" >> $GITHUB_ENV
+
+            rds_db_name=$(terraform output -state=./terraform.tfstate rds_db_name)
+            echo "rds_db_name=$rds_db_name" >> $GITHUB_ENV
           else
             echo "State file does not exist."
             echo "state_exists=false" >> $GITHUB_ENV
@@ -120,7 +123,7 @@ jobs:
         env:
             TF_VAR_db_user: ${{ secrets.DB_USER }}
             TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-            TF_VAR_db_name: ${{ secrets.DATABASE_NAME }}
+            TF_VAR_db_name: ${{ env.rds_db_name }}
             TF_VAR_port: ${{ secrets.PORT }}
             TF_VAR_node_env: ${{ secrets.NODE_ENV }}
             TF_VAR_access_token: ${{ secrets.ACCESS_TOKEN_SECRET }}
@@ -132,15 +135,16 @@ jobs:
       - name: 'Fetch EC2 Instance IP'
         id: get_ec2_ip
         run: |
-          instance_id=$(terraform output -raw instance_id)
-          ec2_ip=$(aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
-          echo "EC2_IP=$ec2_ip" >> $GITHUB_ENV
+          state_file="matchmyresume-backend-state-demo--0788da0f74/backend-ec2/terraform.tfstate"
+          aws s3 ls s3://$s3_bucket/$state_file
+          instance_public_ip=$(terraform output -state=./terraform.tfstate instance_public_ip)
+          echo "instance_public_ip=$instance_public_ip" >> $GITHUB_ENV
         working-directory: ./modules/ec2-backend
 
       - name: 'Check RDS Connection from EC2'
         run: |
-          echo "Connecting to EC2 Instance: ${{ env.EC2_IP }} and testing RDS connection"
-          ssh -o StrictHostKeyChecking=no -i /path/to/your/private-key.pem ec2-user@${{ env.EC2_IP }} \
+          echo "Connecting to EC2 Instance: ${{ env.instance_public_ip }} and testing RDS connection"
+          ssh -o StrictHostKeyChecking=no -i /path/to/your/private-key.pem ec2-user@${{ env.instance_public_ip }} \
           "nc -zv ${RDS_ENDPOINT} 3306"
         env:
           RDS_ENDPOINT: ${{ env.rds_endpoint }}

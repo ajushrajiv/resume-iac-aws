@@ -29,6 +29,10 @@ output "rds_private_address" {
   value = data.terraform_remote_state.rds-sql.outputs.rds_private_address
 }
 
+output "rds_db_name" {
+  value = data.terraform_remote_state.rds-sql.outputs.rds_db_name
+}
+
 resource "aws_security_group" "ec2_backend_sg" {
   name   = "ec2-backend-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
@@ -110,7 +114,7 @@ data "template_file" "user_data" {
     DB_HOST              = data.terraform_remote_state.rds-sql.outputs.rds_private_address
     DB_USER              = var.db_user
     DB_PASSWORD          = var.db_password
-    DB_NAME              = var.db_name
+    DB_NAME              = data.terraform_remote_state.rds-sql.outputs.rds_db_name
     PORT                 = var.port
     NODE_ENV             = var.node_env
     ACCESS_TOKEN_SECRET  = var.access_token
