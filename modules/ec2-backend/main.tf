@@ -180,7 +180,7 @@ resource "aws_launch_template" "backend_launch_template" {
   instance_type = "t2.small"
   key_name      = "test-keypair"
 
-  user_data = data.template_file.user_data.rendered
+  user_data = base64encode(data.template_file.user_data.rendered)
 
   tag_specifications {
     resource_type = "instance"
