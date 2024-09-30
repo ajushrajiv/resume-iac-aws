@@ -154,7 +154,7 @@ resource "aws_lb_target_group" "resume_backend_tg" {
   target_type = "instance"
 
   health_check {
-    path                = "/health/healthcheck"
+    path                = "v1/health/healthcheck"
     protocol            = "HTTP"
     interval            = 30
     timeout             = 5
