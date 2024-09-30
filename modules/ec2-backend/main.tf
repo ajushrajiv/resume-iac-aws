@@ -34,7 +34,7 @@ output "rds_db_name" {
 }
 
 resource "aws_security_group" "elb_asg_backend_sg" {
-  name   = "ec2-backend-sg"
+  name   = "elb-asg-backend-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   egress {
