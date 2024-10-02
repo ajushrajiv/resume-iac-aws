@@ -129,6 +129,7 @@ data "template_file" "user_data" {
     NODE_ENV             = var.node_env
     ACCESS_TOKEN_SECRET  = var.access_token
     REFRESH_TOKEN_SECRET = var.refresh_token
+    LOG_LEVEL            = var.log_level
   }
 }
 
