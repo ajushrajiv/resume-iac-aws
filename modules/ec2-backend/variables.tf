@@ -33,3 +33,8 @@ variable "refresh_token" {
   description = "refresh token for user authentication"
   type        = string
 }
+
+variable "log_level" {
+  description = "log level"
+  type        = string
+}

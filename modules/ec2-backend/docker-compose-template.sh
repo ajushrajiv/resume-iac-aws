@@ -26,7 +26,7 @@ cat <<EOL > docker-compose.yml
 version: '3'
 services:
   app:
-    image: anrajiv/matchmyresume-backend-healthcheck:latest
+    image: anrajiv/matchhmyresume-backend-healthcheck-logger:latest
     environment:
       - DB_HOST=${DB_HOST}
       - DB_USERNAME=${DB_USER}
@@ -36,6 +36,7 @@ services:
       - NODE_ENV=${NODE_ENV}
       - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
       - REFRESH_ACCESS_TOKEN=${REFRESH_TOKEN_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL}
     ports:
       - "5555:5555"
 EOL
