@@ -16,7 +16,7 @@ resource "aws_amplify_app" "matchmyresume_amplify_app" {
 
   environment_variables = {
     _LIVE_UPDATES             = "enabled"
-    NEXT_PUBLIC_WEBSOCKET_URL = "ws://${data.terraform_remote_state.backend-ec2.outputs.load_balancer_dns}:5555"
+    NEXT_PUBLIC_WEBSOCKET_URL = "ws://${data.terraform_remote_state.backend-ec2.outputs.load_balancer_dns}"
     NEXT_PUBLIC_API_HOST      = data.terraform_remote_state.backend-ec2.outputs.load_balancer_dns
   }
 
@@ -37,7 +37,7 @@ resource "aws_amplify_branch" "main_branch" {
   enable_auto_build = true
 
   environment_variables = {
-    NEXT_PUBLIC_WEBSOCKET_URL = "ws://${data.terraform_remote_state.backend-ec2.outputs.load_balancer_dns}:5555"
+    NEXT_PUBLIC_WEBSOCKET_URL = "ws://${data.terraform_remote_state.backend-ec2.outputs.load_balancer_dns}"
     NEXT_PUBLIC_API_HOST      = data.terraform_remote_state.backend-ec2.outputs.load_balancer_dns
   }
 }
