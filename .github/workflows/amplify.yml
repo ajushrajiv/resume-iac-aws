@@ -118,7 +118,7 @@ jobs:
 
       - name: 'Terraform Apply'
         env:
-          TF_VAR_NEXT_PUBLIC_WEBSOCKET_URL: "ws://${{ env.load_balancer_dns }}:5555"
+          TF_VAR_NEXT_PUBLIC_WEBSOCKET_URL: "ws://${{ env.load_balancer_dns }}"
           TF_VAR_NEXT_PUBLIC_API_HOST: ${{ env.load_balancer_dns }}
           TF_VAR_access_token: ${{ secrets.ACCESS_TOKEN_REPO }}
         run: terraform apply -auto-approve
