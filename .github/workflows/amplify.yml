@@ -89,11 +89,12 @@ jobs:
       - name: 'Check if Terraform State Exists'
         id: check_state
         run: |
-          state_file="matchmyresume-backend-state-demo--0788da0f74/ec2-backend/terraform.tfstate"
+          state_file="matchmyresume-backend-state-demo--0788da0f74/backend-ec2/terraform.tfstate"
           aws s3 ls s3://$s3_bucket/$state_file
           if [ $? -eq 0 ]; then
             echo "State file exists."
             echo "$output"
+            echo "state_exists=true" >> $GITHUB_ENV
 
             # Download the state file
             aws s3 cp s3://$s3_bucket/$state_file ./terraform.tfstate
