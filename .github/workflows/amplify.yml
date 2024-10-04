@@ -16,6 +16,21 @@ jobs:
       - name: 'Checkout GitHub Actions'
         uses: actions/checkout@v4
 
+      - name: 'Cache Node Modules'
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Install Dependencies if Cache Miss
+      - name: 'Install Dependencies'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm install
+
+
       - name: 'Get Previous s3-workflow Run ID'
         id: get_run_id
         run: |
