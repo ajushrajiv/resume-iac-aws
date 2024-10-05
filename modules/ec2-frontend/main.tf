@@ -8,7 +8,7 @@ data "terraform_remote_state" "vpc" {
 }
 
 resource "aws_db_subnet_group" "resume_subnet_group" {
-  name = "ec2-subnet-group"
+  name = "ec2-frontend-subnet-group"
   subnet_ids = [
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1a,
     data.terraform_remote_state.vpc.outputs.public_subnet_id_1b,
@@ -26,7 +26,7 @@ data "terraform_remote_state" "backend-ec2" {
 }
 
 resource "aws_security_group" "elb_resume_frontend_asg" {
-  name   = "elb-asg-backend-sg"
+  name   = "elb-asg-frontend-sg"
   vpc_id = data.terraform_remote_state.vpc.outputs.vpc_id
 
   egress {
