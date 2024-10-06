@@ -112,9 +112,9 @@ jobs:
           fi
         continue-on-error: true
 
-      - name: 'Debug RDS Endpoint'
+      - name: 'Debug load balancer dns'
         run: |
-          echo "RDS Private Address: ${{ env.rds_private_address }}"
+          echo "Load balancer dns: ${{ env.load_balancer_dns }}"
 
       - name: 'Terraform Apply'
         env:
@@ -128,6 +128,6 @@ jobs:
         run: |
           state_file="matchmyresume-backend-state-demo--0788da0f74/frontend-ec2/terraform.tfstate"
           aws s3 ls s3://$s3_bucket/$state_file
-          load_balancer_dns=$(terraform output -state=./terraform.tfstate load_balancer_dns)
-          echo "load_balancer_dns=$load_balancer_dns" >> $GITHUB_ENV
+          load_balancer_frontend_dns=$(terraform output -state=./terraform.tfstate load_balancer_dns)
+          echo "load_balancer_frontend_dns=$load_balancer_frontend_dns" >> $GITHUB_ENV
         working-directory: ./modules/ec2-frontend
