@@ -116,6 +116,16 @@ jobs:
         run: |
           echo "Load balancer dns: ${{ env.load_balancer_dns }}"
 
+      - name: 'Strip double quotes from load balancer DNS'
+        run: |
+          sanitized_dns=$(echo ${{ env.load_balancer_dns }} | sed 's/"//g')
+          echo "Sanitized load balancer DNS: $sanitized_dns"
+          echo "load_balancer_dns=$sanitized_dns" >> $GITHUB_ENV
+
+      - name: 'Debug Load Balancer DNS'
+        run: |
+          echo "Sanitized load balancer DNS: ${{ env.load_balancer_dns }}"
+        
       - name: 'Terraform Apply'
         env:
             TF_VAR_websocket_url: ${{ format('ws://{0}', env.load_balancer_dns) }}
