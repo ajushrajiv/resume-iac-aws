@@ -119,7 +119,7 @@ jobs:
       - name: 'Terraform Apply'
         env:
             TF_VAR_websocket_url: ${{ format('ws://{0}', env.load_balancer_dns) }}
-            TF_VAR_api_host: ${{ env.load_balancer_dns }}
+            TF_VAR_api_host: ${{ format('{0}', env.load_balancer_dns) }}
             TF_VAR_docker_username: ${{ secrets.DOCKER_USERNAME }}
             TF_VAR_docker_password: ${{ secrets.DOCKER_PASSWORD }}
         run: terraform apply -auto-approve
