@@ -118,7 +118,7 @@ data "template_file" "user_data" {
   template = file("${path.module}/docker-compose-template.sh")
 
   vars = {
-    NEXT_PUBLIC_WEBSOCKET_URL = "ws://${var.websocket_url}"
+    NEXT_PUBLIC_WEBSOCKET_URL = var.websocket_url
     NEXT_PUBLIC_API_HOST      = var.api_host
     DOCKER_USERNAME           = var.docker_username
     DOCKER_PASSWORD           = var.docker_password
