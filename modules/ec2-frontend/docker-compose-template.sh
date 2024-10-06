@@ -22,7 +22,7 @@ cat <<EOL > docker-compose.yml
 version: '3'
 services:
   app:
-    image: anrajiv/matchhmyresume-frontend-healthcheck:latest
+    image: anrajiv/matchmyresume-frontend-elb-healthcheck:latest
     environment:
       - NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}
       - NEXT_PUBLIC_API_HOST=${NEXT_PUBLIC_API_HOST}
