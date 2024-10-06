@@ -12,3 +12,13 @@ variable "api_host" {
   description = "API Host"
   type        = string
 }
+
+variable "docker_username" {
+  description = "Docker username"
+  type        = string
+}
+
+variable "docker_password" {
+  description = "Docker password"
+  type        = string
+}
