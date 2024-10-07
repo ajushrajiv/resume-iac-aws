@@ -24,8 +24,8 @@ services:
   app:
     image: anrajiv/matchmyresume-frontend-elb-healthcheck:latest
     environment:
-      - NEXT_PUBLIC_WEBSOCKET_URL=resume-backend-lb-94904934.eu-central-1.elb.amazonaws.com
-      - NEXT_PUBLIC_API_HOST=resume-backend-lb-94904934.eu-central-1.elb.amazonaws.com
+      - NEXT_PUBLIC_WEBSOCKET_URL=resume-backend-lb-1259942170.eu-central-1.elb.amazonaws.com
+      - NEXT_PUBLIC_API_HOST=resume-backend-lb-1259942170.eu-central-1.elb.amazonaws.com
     ports:
       - "3000:3000"
 EOL
