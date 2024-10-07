@@ -5,12 +5,12 @@ variable "aws_region" {
 
 variable "websocket_url" {
   description = "WebSocket URL"
-  default     = resume-backend-lb-94904934.eu-central-1.elb.amazonaws.com
+  default     = resume-backend-lb-1259942170.eu-central-1.elb.amazonaws.com
 }
 
 variable "api_host" {
   description = "API Host"
-  default     = resume-backend-lb-94904934.eu-central-1.elb.amazonaws.com
+  default     = resume-backend-lb-1259942170.eu-central-1.elb.amazonaws.com
 }
 
 variable "docker_username" {
