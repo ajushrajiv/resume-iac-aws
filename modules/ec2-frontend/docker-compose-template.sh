@@ -22,10 +22,10 @@ cat <<EOL > docker-compose.yml
 version: '3'
 services:
   app:
-    image: anrajiv/demo-matchmyresume-frontend-elb-healthcheck:new-version-three
+    image: anrajiv/demo-matchmyresume-frontend-elb-healthcheck:new-version-one
     environment:
-      - NEXT_PUBLIC_WEBSOCKET_URL=resume-backend-lb-2039486519.eu-central-1.elb.amazonaws.com
-      - NEXT_PUBLIC_API_HOST=resume-backend-lb-2039486519.eu-central-1.elb.amazonaws.com
+      - NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}
+      - NEXT_PUBLIC_API_HOST=${NEXT_PUBLIC_API_HOST}
     ports:
       - "3000:3000"
 EOL
