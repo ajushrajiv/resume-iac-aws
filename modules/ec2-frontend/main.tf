@@ -169,8 +169,8 @@ resource "aws_lb_listener" "resume_frontend_listener" {
 
 resource "aws_launch_template" "frontend_launch_template" {
   name_prefix   = "frontend-launch-template"
-  image_id      = "ami-0084a47cc718c111a"
-  instance_type = "t2.medium"
+  image_id      = "ami-0e04bcbe83a83792e"
+  instance_type = "t2.small"
   key_name      = "test-keypair"
 
   user_data = base64encode(data.template_file.user_data.rendered)
