@@ -26,7 +26,7 @@ cat <<EOL > docker-compose.yml
 version: '3'
 services:
   app:
-    image: anrajiv/matchhmyresume-backend-health-winstonlogger:latest
+    image: anrajiv/matchmyresume-backend-logger-healthcheck:new-version-one
     environment:
       - DB_HOST=${DB_HOST}
       - DB_USERNAME=${DB_USER}
